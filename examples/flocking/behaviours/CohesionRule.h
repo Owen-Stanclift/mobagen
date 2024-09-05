@@ -7,6 +7,8 @@ class Boid;
 
 /* Steer to move toward center of mass of local flockmates */
 class CohesionRule : public FlockingRule {
+  private:
+  float radius = 5;
 public:
   explicit CohesionRule(World* pWorld, float weight = 1., bool isEnabled = true) : FlockingRule(pWorld, Color::Cyan, weight, isEnabled) {}
 

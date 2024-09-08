@@ -6,7 +6,8 @@
 /* Steer to avoid local flockmates */
 class SeparationRule : public FlockingRule {
 private:
-  float desiredMinimalDistance = 10;
+  float desiredMinimalDistance = 10.0f;
+  float maxForce = 2.0f;
 
 public:
   explicit SeparationRule(World* pWorld, float desiredSeparation = 20., float weight = 1., bool isEnabled = true)

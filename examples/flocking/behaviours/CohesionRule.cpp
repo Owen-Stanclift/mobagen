@@ -6,29 +6,39 @@
 
 Vector2f CohesionRule::computeForce(const std::vector<Boid*>& neighborhood, Boid* boid) {
   Vector2f cohesionForce = Vector2f::zero();
-  Vector2f centerMass;
+  Vector2f centerMass = Vector2f::zero();
+  Vector2f centerPosition = Vector2f::zero();
+  int neightborCount = 0;
   if(neighborhood.size() == 0) {
     return {0,0};
   }
   else {
     // todo: add your code here to make a force towards the center of mass
     // hint: iterate over the neighborhood
-    for (auto n : neighborhood)
-    {
-      if(n->transform.position.x == boid->transform.position.x && n->transform.position.y == boid->transform.position.y)
-        continue;
-      centerMass = n->transform.position/neighborhood.size();
-      Vector2f length = centerMass - boid->transform.position;
-      float magnitude = sqrt(length.x * length.x + length.y * length.y);
-      if(magnitude <= radius) {
-        cohesionForce = length/radius;
-        return cohesionForce;
+    for (auto n : neighborhood) {
+      Vector2f length = n->transform.position - boid->transform.position;
+      float distance =  length.getMagnitude();
+      if(distance <= boid->getDetectionRadius())
+        {
+        neightborCount++;
+        centerPosition += n->transform.position;
       }
-      if(magnitude > radius) {
-        return cohesionForce;
-      }
-      // find center of mass
-      return cohesionForce;
     }
+    if(neightborCount > 0)
+    {
+      centerMass = centerPosition/neightborCount; //PCM
+      Vector2f forceLength = centerMass - boid->transform.position; // ->BoidPCM
+      float magnitude = forceLength.getMagnitude(); // |Boid PCM|
+      if(magnitude <= boid->getDetectionRadius())
+        {
+        cohesionForce =  forceLength/boid->getDetectionRadius();
+        return cohesionForce;
+      }
+      if(magnitude > boid->getDetectionRadius()) {
+        return Vector2f::zero();
+      }
+    }
+    else
+      return Vector2f::zero();
   }
 }

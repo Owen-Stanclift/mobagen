@@ -152,7 +152,7 @@ void World::Clear() {
   for (int i = 0; i < data.size(); ++i) {
     if (i % ((sideSize + 1) * 2) == (sideSize + 1) * 2 - 2 ||  // remove north elements on the last column
         (i / ((sideSize + 1) * 2) == sideSize && i % 2 == 1))  // remove west elements on the last line
-      data[i] = false;
+          data[i] = false;
     else
       data[i] = true;
   }

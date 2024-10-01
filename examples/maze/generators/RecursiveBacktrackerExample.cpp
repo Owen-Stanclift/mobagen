@@ -7,12 +7,11 @@ bool RecursiveBacktrackerExample::Step(World* w) {
   // todo: implement this
   auto sideOver2 = w->GetSize() / 2;
     std::vector<Point2D> visitPoints = getVisitables(w,currentPoint);
-    int randNum = 0;
-  int distX = 0;
-  int distY = 0;
-    std::mt19937 rng = std::mt19937(std::random_device()());
-    std::uniform_int_distribution<int> range(0,99);
-    randNum = range(rng);
+
+    // int randNum = 0;
+    // std::mt19937 rng = std::mt19937(std::random_device()());
+    // std::uniform_int_distribution<int> range(0,99);
+    // randNum = range(rng);
 
   if(stack.empty() && !visited[-sideOver2][-sideOver2]) {
     currentPoint = {-sideOver2, -sideOver2};
@@ -20,48 +19,31 @@ bool RecursiveBacktrackerExample::Step(World* w) {
   }
   else {
     if(visitPoints.size() > 0) {
-      switch(randNum % visitPoints.size()) {
+      switch(nums[count] % visitPoints.size()) {
         case 0:
           stack.push_back(currentPoint);
         w->SetNode(visitPoints.at(0),w->GetNode(currentPoint));
-        distX = visitPoints.at(0).x - currentPoint.x;
-        distY = visitPoints.at(0).y - currentPoint.y;
-        currentPoint = { currentPoint.x + distX ,currentPoint.y +distY };
-        visited[currentPoint.y][currentPoint.x] = true;
+        currentPoint = visitPoints.at(0);
         break;
         case 1:
           stack.push_back(currentPoint);
+        currentPoint = visitPoints.at(1);
         w->SetNode(visitPoints.at(1),w->GetNode(currentPoint));
-        distX = visitPoints.at(1).x - currentPoint.x;
-        distY = visitPoints.at(1).y - currentPoint.y;
-        currentPoint = { currentPoint.x + distX ,currentPoint.y +distY };
-        visited[currentPoint.y][currentPoint.x] = true;
         break;
         case 2:
           stack.push_back(currentPoint);
-        w->SetNode(visitPoints.at(2),w->GetNode(currentPoint));
-        distX = visitPoints.at(2).x - currentPoint.x;
-        distY = visitPoints.at(2).y - currentPoint.y;
-        currentPoint = { currentPoint.x + distX ,currentPoint.y +distY };
-
+        currentPoint = visitPoints.at(2);
         break;
         case 3:
           stack.push_back(currentPoint);
         w->SetNode(visitPoints.at(3),w->GetNode(currentPoint));
-        distX = visitPoints.at(3).x - currentPoint.x;
-        distY = visitPoints.at(3).y - currentPoint.y;
-        currentPoint = { currentPoint.x + distX ,currentPoint.y +distY };
-        visited[currentPoint.y][currentPoint.x] = true;
+        currentPoint = visitPoints.at(3);
         break;
-
       }
+      count++;
+      visited[currentPoint.y][currentPoint.x] = true;
       w->SetNodeColor(currentPoint,Color::Green);
-      if(w->GetNodeColor(stack.back()) != Color::Black) {
         w->SetNodeColor((stack.back()), Color::Red);
-      }
-      else {
-        w->SetNodeColor(stack.back(), Color::Black);
-      }
     }
     else {
       w->SetNodeColor(currentPoint,Color::Black);

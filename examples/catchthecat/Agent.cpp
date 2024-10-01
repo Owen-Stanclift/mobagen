@@ -5,11 +5,10 @@
 #include "World.h"
 using namespace std;
 std::vector<Point2D> Agent::generatePath(World* w) {
-  unordered_map<Point2D, Point2D> cameFrom;  // to build the flowfield and build the path
-  queue<Point2D> frontier;                   // to store next ones to visit
-  unordered_set<Point2D> frontierSet;        // OPTIMIZATION to check faster if a point is in the queue
-  unordered_map<Point2D, bool> visited;      // use .at() to get data, if the element dont exist [] will give you wrong results
+   // use .at() to get data, if the element dont exist [] will give you wrong results
 
+  auto size = w->getWorldSideSize()/2;
+  std::vector<Point2D> neighbors;
   // bootstrap state
   auto catPos = w->getCat();
   frontier.push(catPos);
@@ -18,12 +17,26 @@ std::vector<Point2D> Agent::generatePath(World* w) {
 
   while (!frontier.empty()) {
     // get the current from frontier
+      Point2D curr = frontier.front();
     // remove the current from frontierset
+    frontierSet.erase(curr);
     // mark current as visited
-    // getVisitableNeightbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
+    visited[curr] = true;
+    // getVisitableNeighbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
+    neighbors = getVisitables(w,curr);
     // iterate over the neighs:
     // for every neighbor set the cameFrom
     // enqueue the neighbors to frontier and frontierset
+    for(int i=0; i < neighbors.size(); i++) {
+      if(neighbors[i].x == -size || neighbors[i].y == -size || neighbors[i].x == size || neighbors[i].y == size) {
+        while(!frontier.empty()) {
+          frontier.pop();
+        }
+        frontierSet.clear();
+      }
+      frontier.push(neighbors[i]);
+      frontierSet.insert(neighbors[i]);
+    }
     // do this up to find a visitable border and break the loop
   }
 
@@ -31,4 +44,37 @@ std::vector<Point2D> Agent::generatePath(World* w) {
   // if there isnt a reachable border, just return empty vector
   // if your vector is filled from the border to the cat, the first element is the catcher move, and the last element is the cat move
   return vector<Point2D>();
+}
+
+std::vector<Point2D> Agent::getVisitables(World* w, const Point2D& p)
+{
+  std::vector<Point2D> visitables;
+
+  if(!visited[w->NE(p)]) {
+    visitables.push_back(w->NE(p));
+    cameFrom[p] = w->NE(p);
+  }
+  if(!visited[w->E(p)]) {
+    visitables.push_back(w->E(p));
+    cameFrom[p] = w->E(p);
+  }
+
+  if(!visited[w->SE(p)]) {
+    visitables.push_back(w->SE(p));
+    cameFrom[p] = w->SE(p);
+  }
+  if(!visited[w->SW(p)]) {
+    visitables.push_back(w->SW(p));
+    cameFrom[p] = w->SW(p);
+  }
+  if(!visited[w->W(p)]) {
+    visitables.push_back(w->W(p));
+    cameFrom[p] = w->W(p);
+  }
+  if(!visited[w->NW(p)]) {
+    visitables.push_back(w->NW(p));
+    cameFrom[p] = w->NW(p);
+  }
+  return visitables;
+
 }

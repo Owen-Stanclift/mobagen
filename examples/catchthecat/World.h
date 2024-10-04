@@ -27,7 +27,7 @@ private:
   // false means empty
   // true means blocked
   std::vector<bool> worldState;
-
+  std::vector<Point2D> catPath;
   // size of the side of the map
   int sideSize = 0;
   // todo: optimization make the world state only use 16 Bytes.

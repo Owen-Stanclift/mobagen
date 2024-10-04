@@ -22,7 +22,6 @@ World::World(Engine* pEngine, int size) : GameObject(pEngine), sideSize(size) {
   if (size % 2 == 0) throw;
   cat = new Cat();
   catcher = new Catcher();
-
   clearWorld();
 }
 
@@ -191,9 +190,9 @@ void World::step() {
 
   // run the turn
   if (catTurn) {
-    auto move = cat->Move(this);
-    if (catCanMoveToPosition(move)) {
-      catPosition = move;
+    catPath = cat->generatePath(this);
+    if (catCanMoveToPosition(catPath.at(catPath.size() - 1))) {
+      catPosition = catPath.at(catPath.size() - 1);
       catWon = catWinVerification();
     } else {
       isSimulating = false;

@@ -11,7 +11,9 @@ Manager::Manager(Engine* pEngine) : GameObject(pEngine) {
   rules.push_back(new JohnConway());
 }
 
-void Manager::Start() {}
+void Manager::Start() {
+  //Test
+}
 
 void Manager::OnGui(ImGuiContext* context) {
   ImGui::SetCurrentContext(context);

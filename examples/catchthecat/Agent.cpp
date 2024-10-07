@@ -30,10 +30,12 @@ std::vector<Point2D> Agent::generatePath(World* w) {
     // for every neighbor set the cameFrom
     // enqueue the neighbors to frontier and frontierset
     for(int i=0; i < neighbors.size(); i++) {
-      if(abs(neighbors[i].x) == size || abs(neighbors[i].y) == size)
-        borderExit = neighbors[i];
       frontier.push(neighbors[i]);
       frontierSet.insert(neighbors[i]);
+      if(abs(neighbors[i].x) == size || abs(neighbors[i].y) == size) {
+        borderExit = neighbors[i];
+        break;
+      }
     }
 
     if(borderExit != Point2D::INFINITE) {
@@ -50,6 +52,7 @@ std::vector<Point2D> Agent::generatePath(World* w) {
     currPoint = cameFrom[currPoint];
   }
   frontierSet.clear();
+  visited.clear();
   return path;
   // if there isnt a reachable border, just return empty vector
   // if your vector is filled from the border to the cat, the first element is the catcher move, and the last element is the cat move
@@ -60,28 +63,28 @@ std::vector<Point2D> Agent::getVisitables(World* w, const Point2D& p)
 {
   std::vector<Point2D> visitables;
 
-  if(!visited[w->NE(p)]) {
+  if(!visited[w->NE(p)] && !w->getContent(w->NE(p))) {
     visitables.push_back(w->NE(p));
     cameFrom[w->NE(p)] = p;
   }
-  if(!visited[w->E(p)]) {
+  if(!visited[w->E(p)]&& !w->getContent(w->E(p))) {
     visitables.push_back(w->E(p));
     cameFrom[w->E(p)] = p;
   }
 
-  if(!visited[w->SE(p)]) {
+  if(!visited[w->SE(p)]&& !w->getContent(w->SE(p))) {
     visitables.push_back(w->SE(p));
     cameFrom[w->SE(p)] = p;
   }
-  if(!visited[w->SW(p)]) {
+  if(!visited[w->SW(p)]&& !w->getContent(w->SW(p))) {
     visitables.push_back(w->SW(p));
     cameFrom[w->SW(p)] = p;
   }
-  if(!visited[w->W(p)]) {
+  if(!visited[w->W(p)]&& !w->getContent(w->W(p))) {
     visitables.push_back(w->W(p));
     cameFrom[w->W(p)] = p;
   }
-  if(!visited[w->NW(p)]) {
+  if(!visited[w->NW(p)]&& !w->getContent(w->NW(p))) {
     visitables.push_back(w->NW(p));
     cameFrom[w->NW(p)] = p;
   }

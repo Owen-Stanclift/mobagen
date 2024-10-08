@@ -8,7 +8,8 @@
 using namespace std;
 std::vector<Point2D> Agent::generatePath(World* w) {
    // use .at() to get data, if the element dont exist [] will give you wrong results
-
+  std::queue<Point2D> frontier;                   // to store next ones to visit
+  std::unordered_set<Point2D> frontierSet;        // OPTIMIZATION to check faster if a point is in the queue
   auto size = w->getWorldSideSize()/2;
   std::vector<Point2D> neighbors;
   // bootstrap state
@@ -19,13 +20,19 @@ std::vector<Point2D> Agent::generatePath(World* w) {
 
   while (!frontier.empty()) {
     // get the current from frontier
-    Point2D curr = frontier.back();
+    Point2D curr = frontier.front();
+    frontier.pop();
     // remove the current from frontierset
     frontierSet.erase(curr);
     // mark current as visited
     visited[curr] = true;
     // getVisitableNeighbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
     neighbors = getVisitables(w,curr);
+
+    //add 1 distance to the accDist from the curr
+    //set the heuristic distance from the neighbor to the end node
+
+
     // iterate over the neighs:
     // for every neighbor set the cameFrom
     // enqueue the neighbors to frontier and frontierset
@@ -90,4 +97,39 @@ std::vector<Point2D> Agent::getVisitables(World* w, const Point2D& p)
   }
   return visitables;
 
+}
+
+Point2D Agent::probableExit(const Point2D& p,World* w) {
+
+  auto halfSize = w->getWorldSideSize() / 2;
+  ////Top left
+  if(p.x < 0 && p.y < 0 && abs(p.x) > abs(p.y)) {
+    return {-halfSize, p.y};
+  }
+  if(p.x < 0 && p.y < 0 && abs(p.x) < abs(p.y)) {
+    return {p.x, -halfSize};
+  }
+////////////Top right
+  if(p.x > 0 && p.y < 0 && abs(p.x) > abs(p.y)) {
+    return {halfSize, p.y};
+  }
+  if(p.x > 0 && p.y < 0 && abs(p.x) < abs(p.y)) {
+    return {p.x, -halfSize};
+  }
+  ///////////Bottom right
+  if(p.x > 0 && p.y > 0 && abs(p.x) > abs(p.y)) {
+    return {halfSize, p.y};
+  }
+  if(p.x > 0 && p.y > 0 && abs(p.x) < abs(p.y)) {
+    return {p.x, halfSize};
+  }
+  //////////////Bottom left
+  if(p.x < 0 && p.y > 0 && abs(p.x) > abs(p.y)) {
+    return {-halfSize, p.y};
+  }
+  if(p.x < 0 && p.y > 0 && abs(p.x) < abs(p.y)) {
+    return {p.x, halfSize};
+  }
+
+  return {0,0};
 }

@@ -156,6 +156,9 @@ void World::OnGui(ImGuiContext* context) {
   }
   ImGui::End();
 
+  if(ImGui::Button("print")) {
+    std::cout << cat->probableExit(catPosition,this).x << " " <<cat->probableExit(catPosition,this).y << std::endl;
+  }
   if ((catcherWon || catWon)) {
     ImGuiIO& io = ImGui::GetIO();
     ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);

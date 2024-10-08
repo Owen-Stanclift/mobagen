@@ -18,12 +18,12 @@ public:
 
   std::vector<Point2D> getVisitables(World* w, const Point2D& p);
 
+  Point2D probableExit(const Point2D& p,World* w);
+
 
 
 private:
   std::unordered_map<Point2D, Point2D> cameFrom;  // to build the flowfield and build the path
-  std::queue<Point2D> frontier;                   // to store next ones to visit
-  std::unordered_set<Point2D> frontierSet;        // OPTIMIZATION to check faster if a point is in the queue
   std::unordered_map<Point2D, bool> visited;
 };
 

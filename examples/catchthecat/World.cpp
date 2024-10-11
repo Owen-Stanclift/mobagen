@@ -212,9 +212,8 @@ void World::step() {
       }
     }
   } else {
-    auto move = catcher->Move(this);
-    if (catcherCanMoveToPosition(move)) {
-      worldState[(move.y + sideSize / 2) * (sideSize) + move.x + sideSize / 2] = true;
+    if (catcherCanMoveToPosition(cat->exit)) {
+      worldState[(cat->exit.y + sideSize / 2) * (sideSize) + cat->exit.x + sideSize / 2] = true;
       catcherWon = catcherWinVerification();
     } else {
       isSimulating = false;

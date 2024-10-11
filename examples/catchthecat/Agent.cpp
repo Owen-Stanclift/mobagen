@@ -4,11 +4,12 @@
 #include <queue>
 #include "World.h"
 
+#include <algorithm>
 #include <map>
 
 using namespace std;
 std::vector<Point2D> Agent::generatePath(World* w) {
-   // use .at() to get data, if the element dont exist [] will give you wrong results
+  // use .at() to get data, if the element dont exist [] will give you wrong results
   std::priority_queue<Node> frontier;                   // to store next ones to visit
   std::unordered_set<Point2D> frontierSet;        // OPTIMIZATION to check faster if a point is in the queue
   auto size = w->getWorldSideSize()/2;
@@ -20,7 +21,25 @@ std::vector<Point2D> Agent::generatePath(World* w) {
   int leastCost = heuristic;
   frontier.push({catPos,currCost,heuristic});
   frontierSet.insert(catPos);
-  Point2D probablePoint = probableExit(catPos,w);
+  exit = probableExit(catPos,w);
+  if(w->getContent(exit)) {
+    if(abs(exit.x) == size) {
+      while(w->getContent(exit)) {
+        if(exit.y < size)
+          exit = {exit.x,exit.y+1};
+        if(exit.y > -size)
+          exit = {exit.x,exit.y-1};
+      }
+    }
+    if(abs(exit.y) == size) {
+      while(w->getContent(exit)) {
+        if(exit.x < size)
+          exit = {exit.x,exit.y+1};
+        if(exit.x > -size)
+          exit = {exit.x,exit.y-1};
+      }
+    }
+  }
   Point2D borderExit = Point2D::INFINITE;  // if at the end of the loop we dont find a border, we have to return random points
   if(catPos.x == 0 && catPos.y == 0) {
     frontier.pop();
@@ -31,9 +50,10 @@ std::vector<Point2D> Agent::generatePath(World* w) {
     randNum = range(rng);
     Point2D nextPos = neighbors[randNum];
     heuristic = size-1;
+    leastCost = heuristic;
     frontier.push({nextPos,currCost+1,heuristic});
     cameFrom[nextPos] = catPos;
-    probableExit(nextPos,w);
+    exit = probableExit(nextPos,w);
   }
 
 
@@ -55,23 +75,24 @@ std::vector<Point2D> Agent::generatePath(World* w) {
     // for every neighbor set the cameFrom
     // enqueue the neighbors to frontier and frontierset
     for(int i=0; i < neighbors.size(); i++) {
-      int neighborCost = curr.cost + cost(probablePoint,neighbors[i]);
-      if(neighborCost < leastCost) {
+      int neighborCost = cost(exit,neighbors[i]);
+      if(neighborCost <= leastCost) {
         leastCost = neighborCost;
-        frontier.push({neighbors[i],curr.cost+1,leastCost});
-        if(abs(neighbors[i].x) == size || abs(neighbors[i].y) == size) {
-          borderExit = neighbors[i];
-          break;
-        }
+        leastPoint = neighbors[i];
       }
-      if(borderExit != Point2D::INFINITE) {
-        break;
-      }
-
+    }
+    frontier.push({leastPoint,curr.cost+1,leastCost});
+    cameFrom[leastPoint] = curr.p;
+    if(abs(leastPoint.x) == size || abs(leastPoint.y) == size) {
+      borderExit = leastPoint;
+      break;
+    }
+    if(borderExit != Point2D::INFINITE) {
+      break;
     }
 
-    // do this up to find a visitable border and break the loop
   }
+    // do this up to find a visitable border and break the loop
 
   if(borderExit == Point2D::INFINITE)
     {
@@ -96,20 +117,20 @@ std::vector<Point2D> Agent::getVisitables(World* w, const Point2D& p)
 {
   std::vector<Point2D> visitables;
 
-  if(!visited[w->NE(p)] && !w->getContent(w->NE(p)) && cameFrom.find(w->NE(p)) == cameFrom.end()) {
+  if(!visited[w->NE(p)] && !w->getContent(w->NE(p))) {
     visitables.push_back(w->NE(p));
   }
-  if(!visited[w->E(p)]&& !w->getContent(w->E(p))&& cameFrom.find(w->E(p)) == cameFrom.end()) {
+  if(!visited[w->E(p)]&& !w->getContent(w->E(p))) {
     visitables.push_back(w->E(p));
   }
 
-  if(!visited[w->SE(p)]&& !w->getContent(w->SE(p))&& cameFrom.find(w->SE(p)) == cameFrom.end()) {
+  if(!visited[w->SE(p)]&& !w->getContent(w->SE(p))) {
     visitables.push_back(w->SE(p));
   }
-  if(!visited[w->SW(p)]&& !w->getContent(w->SW(p))&& cameFrom.find(w->SW(p)) == cameFrom.end()) {
+  if(!visited[w->SW(p)]&& !w->getContent(w->SW(p))) {
     visitables.push_back(w->SW(p));
   }
-  if(!visited[w->W(p)]&& !w->getContent(w->W(p))&& cameFrom.find(w->W(p)) == cameFrom.end()) {
+  if(!visited[w->W(p)]&& !w->getContent(w->W(p))) {
     visitables.push_back(w->W(p));
   }
   if(!visited[w->NW(p)]&& !w->getContent(w->NW(p))&& cameFrom.find(w->SW(p)) == cameFrom.end()) {
@@ -122,17 +143,18 @@ std::vector<Point2D> Agent::getVisitables(World* w, const Point2D& p)
 Point2D Agent::probableExit(const Point2D& p,World* w) {
 
   auto halfSize = w->getWorldSideSize() / 2;
-
+  Point2D searchExit = p;
   //Few exceptions
   if(p.x == 0) {
-    if(p.y < 0)
-    return {p.x,-halfSize};
+    if(p.y < 0) {
+      return {p.x,-halfSize};
+    }
     if(p.y > 0)
       return {p.x, halfSize};
   }
   if(p.y == 0) {
     if(p.x < 0)
-      return {-halfSize,p.y};
+    return {-halfSize,p.y};
     if(p.x > 0)
       return {halfSize, p.y};
   }
@@ -142,32 +164,31 @@ Point2D Agent::probableExit(const Point2D& p,World* w) {
   if(p.x < 0 && p.y < 0)
   {
     if(abs(p.x) > abs(p.y))
-    return {-halfSize, p.y};
+      return {-halfSize, p.y};
     return {p.x,-halfSize};
   }
 ////////////Top right
   if(p.x > 0 && p.y < 0) {
     if(abs(p.x) > abs(p.y))
-      return {halfSize, p.y};
-    return {p.x,-halfSize};
+        return {halfSize, p.y};
+      return {p.x, -halfSize};
   }
   ///////////Bottom right
   if(p.x > 0 && p.y > 0) {
     if(abs(p.x) > abs(p.y))
       return {halfSize, p.y};
-    return {p.x,halfSize};
+      return {p.x,halfSize};
   }
   //////////////Bottom left
   if(p.x < 0 && p.y > 0) {
     if(abs(p.x) > abs(p.y))
-      return {-halfSize, p.y};
-    return {p.x,halfSize};
+        return {-halfSize, p.y};
+        return {p.x,halfSize};
   }
-
-  return {halfSize,-halfSize};
+  return {0,0};
 }
 
 int Agent::cost(Point2D p1, Point2D p2) {
-  int c = sqrt(pow(p1.x - p2.x,2) + pow(p1.y - p2.y,2));
+  int c = sqrt(pow(p2.x - p1.x,2) + pow(p2.y - p1.y,2));
   return c;
 }

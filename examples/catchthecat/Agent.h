@@ -22,12 +22,12 @@ public:
 
   int cost(Point2D p1, Point2D p2);
 
-
+  Point2D exit;
 
 private:
   std::unordered_map<Point2D, Point2D> cameFrom;  // to build the flowfield and build the path
   std::unordered_map<Point2D, bool> visited;
-
+  Point2D leastPoint;
   struct Node {
     Point2D p;
     int cost;

@@ -20,11 +20,23 @@ public:
 
   Point2D probableExit(const Point2D& p,World* w);
 
+  int cost(Point2D p1, Point2D p2);
+
 
 
 private:
   std::unordered_map<Point2D, Point2D> cameFrom;  // to build the flowfield and build the path
   std::unordered_map<Point2D, bool> visited;
+
+  struct Node {
+    Point2D p;
+    int cost;
+    int hCost;
+
+    bool operator<(const Node &other) const{
+      return cost + hCost > other.cost + other.hCost;
+    }
+  };
 };
 
 

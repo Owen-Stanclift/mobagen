@@ -16,37 +16,21 @@ std::vector<Point2D> Agent::generatePath(World* w) {
   std::vector<Point2D> neighbors;
   // bootstrap state
   auto catPos = w->getCat();
+  exit = probableExit(catPos,w);
+  // if(w->getContent(exit))
+  //   exit = searchNearestExit(exit,w);
   int currCost = 0;
-  int heuristic = size;
+  int heuristic = cost(catPos,exit);
   int leastCost = heuristic;
   frontier.push({catPos,currCost,heuristic});
   frontierSet.insert(catPos);
-  exit = probableExit(catPos,w);
-  if(w->getContent(exit)) {
-    if(abs(exit.x) == size) {
-      while(w->getContent(exit)) {
-        if(exit.y < size)
-          exit = {exit.x,exit.y+1};
-        if(exit.y > -size)
-          exit = {exit.x,exit.y-1};
-      }
-    }
-    if(abs(exit.y) == size) {
-      while(w->getContent(exit)) {
-        if(exit.x < size)
-          exit = {exit.x,exit.y+1};
-        if(exit.x > -size)
-          exit = {exit.x,exit.y-1};
-      }
-    }
-  }
   Point2D borderExit = Point2D::INFINITE;  // if at the end of the loop we dont find a border, we have to return random points
   if(catPos.x == 0 && catPos.y == 0) {
     frontier.pop();
     neighbors = getVisitables(w,catPos);
     int randNum = 0;
     std::mt19937 rng = std::mt19937(std::random_device()());
-    std::uniform_int_distribution<int> range(0,neighbors.size());
+    std::uniform_int_distribution<int> range(0,neighbors.size()-1);
     randNum = range(rng);
     Point2D nextPos = neighbors[randNum];
     heuristic = size-1;
@@ -54,6 +38,8 @@ std::vector<Point2D> Agent::generatePath(World* w) {
     frontier.push({nextPos,currCost+1,heuristic});
     cameFrom[nextPos] = catPos;
     exit = probableExit(nextPos,w);
+    if(w->getContent(exit))
+      exit = searchNearestExit(exit,w);
   }
 
 
@@ -133,7 +119,7 @@ std::vector<Point2D> Agent::getVisitables(World* w, const Point2D& p)
   if(!visited[w->W(p)]&& !w->getContent(w->W(p))) {
     visitables.push_back(w->W(p));
   }
-  if(!visited[w->NW(p)]&& !w->getContent(w->NW(p))&& cameFrom.find(w->SW(p)) == cameFrom.end()) {
+  if(!visited[w->NW(p)]&& !w->getContent(w->NW(p))) {
     visitables.push_back(w->NW(p));
   }
   return visitables;
@@ -147,43 +133,118 @@ Point2D Agent::probableExit(const Point2D& p,World* w) {
   //Few exceptions
   if(p.x == 0) {
     if(p.y < 0) {
-      return {p.x,-halfSize};
+      for(int i = 0;i < halfSize/2;i++) {
+        searchExit = {p.x-i,-halfSize};
+        if(!w->getContent(searchExit)) {
+          return searchExit;
+        }
+        searchExit = {p.x+i,-halfSize};
+        if(!w->getContent(searchExit)) {
+          return searchExit;
+        }
+      }
     }
-    if(p.y > 0)
-      return {p.x, halfSize};
+    if(p.y > 0) {
+      for(int i = 0;i < halfSize/2;i++) {
+        searchExit = {p.x-i,halfSize};
+        if(!w->getContent(searchExit)) {
+          return searchExit;
+        }
+        searchExit = {p.x+i,halfSize};
+        if(!w->getContent(searchExit)) {
+          return searchExit;
+        }
+      }
+    }
   }
   if(p.y == 0) {
-    if(p.x < 0)
-    return {-halfSize,p.y};
-    if(p.x > 0)
-      return {halfSize, p.y};
+    if(p.x < 0) {
+      for(int i = 0;i < halfSize/2;i++) {
+        searchExit = {-halfSize,p.y-i};
+        if(!w->getContent(searchExit)) {
+          return searchExit;
+        }
+        searchExit = {-halfSize,p.y+i};
+        if(!w->getContent(searchExit)) {
+          return searchExit;
+        }
+      }
+    }
+    if(p.x > 0) {
+      for(int i = 0;i < halfSize/2;i++) {
+        searchExit = {halfSize,p.y-i};
+        if(!w->getContent(searchExit)) {
+          return searchExit;
+        }
+        searchExit = {halfSize,p.y+i};
+        if(!w->getContent(searchExit)) {
+          return searchExit;
+        }
+      }
+    }
   }
 
 
   ////Top left
   if(p.x < 0 && p.y < 0)
   {
-    if(abs(p.x) > abs(p.y))
-      return {-halfSize, p.y};
-    return {p.x,-halfSize};
+    if(abs(p.x) > abs(p.y)) {
+      for(int i = 0; i < halfSize/2; i++) {
+        searchExit = {-halfSize,p.y+i};
+        if(!w->getContent(searchExit))
+          return searchExit;
+      }
+    }
+    for(int i = 0; i < halfSize/2; i++) {
+      searchExit = {p.x+i,-halfSize};
+      if(!w->getContent(searchExit))
+        return searchExit;
+    }
   }
 ////////////Top right
   if(p.x > 0 && p.y < 0) {
-    if(abs(p.x) > abs(p.y))
-        return {halfSize, p.y};
-      return {p.x, -halfSize};
+    if(abs(p.x) > abs(p.y)) {
+      for(int i = 0; i < halfSize/2; i++) {
+        searchExit = {halfSize,p.y+i};
+        if(!w->getContent(searchExit))
+          return searchExit;
+      }
+    }
+    for(int i = 0; i < halfSize/2; i++) {
+      searchExit = {p.x-i,-halfSize};
+      if(!w->getContent(searchExit))
+        return searchExit;
+    }
   }
   ///////////Bottom right
   if(p.x > 0 && p.y > 0) {
-    if(abs(p.x) > abs(p.y))
-      return {halfSize, p.y};
-      return {p.x,halfSize};
+    if(abs(p.x) > abs(p.y)) {
+      for(int i = 0; i < halfSize/2; i++) {
+        searchExit = {halfSize,p.y-i};
+        if(!w->getContent(searchExit))
+          return searchExit;
+      }
+    }
+    for(int i = 0; i < halfSize/2; i++) {
+      searchExit = {p.x-i,halfSize};
+      if(!w->getContent(searchExit))
+        return searchExit;
+    }
   }
   //////////////Bottom left
   if(p.x < 0 && p.y > 0) {
-    if(abs(p.x) > abs(p.y))
-        return {-halfSize, p.y};
-        return {p.x,halfSize};
+    if(abs(p.x) > abs(p.y)) {
+      for(int i = 0; i < halfSize/2; i++) {
+        searchExit = {-halfSize,p.y-i};
+        if(!w->getContent(searchExit))
+          return searchExit;
+      }
+    }
+    for(int i = 0; i < halfSize/2; i++) {
+      searchExit = {p.x+i,halfSize};
+      if(!w->getContent(searchExit))
+        return searchExit;
+    }
   }
   return {0,0};
 }
@@ -191,4 +252,15 @@ Point2D Agent::probableExit(const Point2D& p,World* w) {
 int Agent::cost(Point2D p1, Point2D p2) {
   int c = sqrt(pow(p2.x - p1.x,2) + pow(p2.y - p1.y,2));
   return c;
+}
+
+Point2D Agent::searchNearestExit(const Point2D& p,World* w) {
+  auto halfSize = w->getWorldSideSize() / 2;
+  Point2D searchPoint = p;
+  int counter = 1;
+  int overload = 0;
+  //Top
+
+
+  return searchPoint;
 }
